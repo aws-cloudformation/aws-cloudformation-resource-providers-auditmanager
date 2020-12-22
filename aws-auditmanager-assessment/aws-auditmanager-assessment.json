@@ -42,13 +42,13 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "id": {
+        "Id": {
           "$ref": "#/definitions/AccountId"
         },
-        "emailAddress": {
+        "EmailAddress": {
           "$ref": "#/definitions/EmailAddress"
         },
-        "name": {
+        "Name": {
           "$ref": "#/definitions/AccountName"
         }
       }
@@ -123,46 +123,39 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "lastUpdated": {
+        "LastUpdated": {
           "$ref": "#/definitions/Timestamp"
         },
-        "controlSetId": {
+        "ControlSetId": {
           "$ref": "#/definitions/ControlSetId"
         },
-        "creationTime": {
+        "CreationTime": {
           "$ref": "#/definitions/Timestamp"
         },
-        "createdBy": {
+        "CreatedBy": {
           "$ref": "#/definitions/CreatedBy"
         },
-        "roleArn": {
+        "RoleArn": {
           "$ref": "#/definitions/IamArn"
         },
-        "assessmentName": {
+        "AssessmentName": {
           "$ref": "#/definitions/AssessmentName"
         },
-        "comment": {
+        "Comment": {
           "$ref": "#/definitions/DelegationComment"
         },
-        "id": {
+        "Id": {
           "$ref": "#/definitions/UUID"
         },
-        "roleType": {
+        "RoleType": {
           "$ref": "#/definitions/RoleType"
         },
-        "assessmentId": {
+        "AssessmentId": {
           "$ref": "#/definitions/UUID"
         },
-        "status": {
+        "Status": {
           "$ref": "#/definitions/DelegationStatus"
         }
-      }
-    },
-    "Delegations": {
-      "description": "The list of delegations.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Delegation"
       }
     },
     "Role": {
@@ -170,26 +163,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "roleArn": {
+        "RoleArn": {
           "$ref": "#/definitions/IamArn"
         },
-        "roleType": {
+        "RoleType": {
           "$ref": "#/definitions/RoleType"
         }
-      }
-    },
-    "Roles": {
-      "description": "The list of roles for the specified assessment.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Role"
-      }
-    },
-    "AWSAccounts": {
-      "description": "The AWS accounts included in scope.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/AWSAccount"
       }
     },
     "AWSServiceName": {
@@ -201,16 +180,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "serviceName": {
+        "ServiceName": {
           "$ref": "#/definitions/AWSServiceName"
         }
-      }
-    },
-    "AWSServices": {
-      "description": "The AWS services included in scope.",
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/AWSService"
       }
     },
     "Scope": {
@@ -218,11 +190,19 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "awsAccounts": {
-          "$ref": "#/definitions/AWSAccounts"
+        "AwsAccounts": {
+          "description": "The AWS accounts included in scope.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AWSAccount"
+          }
         },
-        "awsServices": {
-          "$ref": "#/definitions/AWSServices"
+        "AwsServices": {
+          "description": "The AWS services included in scope.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AWSService"
+          }
         }
       }
     },
@@ -242,10 +222,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "destination": {
+        "Destination": {
           "$ref": "#/definitions/S3Url"
         },
-        "destinationType": {
+        "DestinationType": {
           "$ref": "#/definitions/AssessmentReportDestinationType"
         }
       }
@@ -284,6 +264,20 @@
         "Key",
         "Value"
       ]
+    }
+  },
+  "properties": {
+    "FrameworkId": {
+      "$ref": "#/definitions/FrameworkId"
+    },
+    "AssessmentId": {
+      "$ref": "#/definitions/UUID"
+    },
+    "AwsAccount": {
+      "$ref": "#/definitions/AWSAccount"
+    },
+    "Arn": {
+      "$ref": "#/definitions/AssessmentArn"
     },
     "Tags": {
       "description": "The tags associated with the assessment.",
@@ -291,68 +285,59 @@
       "items": {
         "$ref": "#/definitions/Tag"
       }
-    }
-  },
-  "properties": {
-    "frameworkId": {
-      "$ref": "#/definitions/FrameworkId"
     },
-    "assessmentId": {
-      "$ref": "#/definitions/UUID"
+    "Delegations": {
+      "description": "The list of delegations.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Delegation"
+      }
     },
-    "awsAccount": {
-      "$ref": "#/definitions/AWSAccount"
+    "Roles": {
+      "description": "The list of roles for the specified assessment.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Role"
+      }
     },
-    "arn": {
-      "$ref": "#/definitions/AssessmentArn"
-    },
-    "tags": {
-      "$ref": "#/definitions/Tags"
-    },
-    "delegations": {
-      "$ref": "#/definitions/Delegations"
-    },
-    "roles": {
-      "$ref": "#/definitions/Roles"
-    },
-    "scope": {
+    "Scope": {
       "$ref": "#/definitions/Scope"
     },
-    "assessmentReportsDestination": {
+    "AssessmentReportsDestination": {
       "$ref": "#/definitions/AssessmentReportsDestination"
     },
-    "status": {
+    "Status": {
       "$ref": "#/definitions/AssessmentStatus"
     },
-    "creationTime": {
+    "CreationTime": {
       "$ref": "#/definitions/Timestamp"
     },
-    "name": {
+    "Name": {
       "$ref": "#/definitions/AssessmentName"
     },
-    "description": {
+    "Description": {
       "$ref": "#/definitions/AssessmentDescription"
     }
   },
   "required": [],
   "additionalProperties": false,
   "readOnlyProperties": [
-    "/properties/assessmentId",
-    "/properties/arn",
-    "/properties/creationTime",
-    "/properties/delegations",
-    "/properties/frameworkId"
+    "/properties/AssessmentId",
+    "/properties/Arn",
+    "/properties/CreationTime",
+    "/properties/Delegations",
+    "/properties/FrameworkId"
   ],
   "createOnlyProperties": [
-    "/properties/frameworkId",
-    "/properties/awsAccount"
+    "/properties/FrameworkId",
+    "/properties/AwsAccount"
   ],
   "writeOnlyProperties": [
-    "/properties/name",
-    "/properties/description"
+    "/properties/Name",
+    "/properties/Description"
   ],
   "primaryIdentifier": [
-    "/properties/assessmentId"
+    "/properties/AssessmentId"
   ],
   "handlers": {
     "create": {
