@@ -9,6 +9,7 @@ phases:
   build:
     commands:
       - pre-commit run --all-files
+      - pip install --upgrade 'six==1.15.0'
       - |
         if [ "$(ls -A $CODEBUILD_SRC_DIR)" ]; then
           cd $CODEBUILD_SRC_DIR
