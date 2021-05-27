@@ -1,11 +1,6 @@
-## My Project
+## CloudFormation resource provider package for AWS Audit Manager
 
-TODO: Fill this README out!
-
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+The CloudFormation resource provider package for AWS Audit Manager.
 
 ## Security
 
