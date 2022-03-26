@@ -41,7 +41,7 @@ public class ReadHandler extends BaseHandlerStd {
           proxyClient.client()::getAssessment);
       logger.log(String.format("%s [%s] retrieved successfully", ResourceModel.TYPE_NAME, model.getAssessmentId()));
     } catch (AwsServiceException e) {
-      throw ExceptionTranslator.translateToCfnException(e, model.getAssessmentId());
+      return ExceptionTranslator.translateToCfnException(e, model.getAssessmentId());
     }
     return ProgressEvent.<ResourceModel, CallbackContext>builder()
         .resourceModel(Utils.transformToAssessmentResourceModel(model, getAssessmentResponse.assessment()))

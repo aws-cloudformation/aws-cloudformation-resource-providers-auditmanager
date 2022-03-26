@@ -1,5 +1,6 @@
 package software.amazon.auditmanager.assessment;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -16,7 +17,14 @@ import static software.amazon.auditmanager.assessment.AbstractTestBase.*;
 import java.time.Duration;
 import com.google.common.collect.Lists;
 import software.amazon.awssdk.services.auditmanager.AuditManagerClient;
+import software.amazon.awssdk.services.auditmanager.model.AccessDeniedException;
+import software.amazon.awssdk.services.auditmanager.model.AuditManagerException;
+import software.amazon.awssdk.services.auditmanager.model.DeleteAssessmentRequest;
+import software.amazon.awssdk.services.auditmanager.model.InternalServerException;
+import software.amazon.awssdk.services.auditmanager.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.auditmanager.model.ValidationException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -96,5 +104,25 @@ public class ListHandlerTest extends AbstractTestBase {
     assertNull(response.getResourceModels().get(0).getScope());
     assertNull(response.getResourceModels().get(0).getDescription());
     assertNull(response.getResourceModels().get(0).getAssessmentReportsDestination());
+  }
+
+  @Test
+  public void handleRequest_accessDenied_ThrowsException() {
+    final ResourceModel inputResourceModel = ResourceModel.builder().build();
+    final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        .desiredResourceState(inputResourceModel)
+        .build();
+
+    when(proxyClient.client().listAssessments(any(ListAssessmentsRequest.class)))
+        .thenThrow(
+            AccessDeniedException.builder().message(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE).build());
+
+    final ProgressEvent<ResourceModel, CallbackContext> response =
+        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+    assertThat(response.getMessage()).isEqualTo(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE);
+    assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.AccessDenied);
+
   }
 }

@@ -24,6 +24,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import java.util.Optional;
 
 public class UpdateHandler extends BaseHandlerStd {
+
   public static final String INACTIVE_ASSESSMENT_STATUS = "INACTIVE";
   protected static final String INACTIVE_ASSESSMENT_ERROR_MESSAGE = "Assessment already in INACTIVE state";
   protected static final String MULTIPLE_UPDATES_ERROR_MESSAGE =
@@ -49,12 +50,15 @@ public class UpdateHandler extends BaseHandlerStd {
     verifyNonUpdatableFields(currentModel, previousModel);
     verifyAssessmentStatus(currentModel, previousModel);
 
-    final Assessment outputAssessment = updateAssessment(currentModel, proxy, proxyClient);
-
-    return ProgressEvent.<ResourceModel, CallbackContext>builder()
-        .resourceModel(Utils.transformToAssessmentResourceModel(currentModel, outputAssessment))
-        .status(OperationStatus.SUCCESS)
-        .build();
+    try {
+      final Assessment outputAssessment = updateAssessment(currentModel, proxy, proxyClient);
+      return ProgressEvent.<ResourceModel, CallbackContext>builder()
+          .resourceModel(Utils.transformToAssessmentResourceModel(currentModel, outputAssessment))
+          .status(OperationStatus.SUCCESS)
+          .build();
+    } catch (AwsServiceException e) {
+      return ExceptionTranslator.translateToCfnException(e, currentModel.getAssessmentId());
+    }
 
   }
 
@@ -64,19 +68,16 @@ public class UpdateHandler extends BaseHandlerStd {
       final ProxyClient<AuditManagerClient> proxyClient) {
     if (currentModel != null
         && currentModel.getStatus() != null
-        && currentModel.getStatus().toString().equals(INACTIVE_ASSESSMENT_STATUS)) {
+        && currentModel.getStatus().equals(INACTIVE_ASSESSMENT_STATUS)) {
       final UpdateAssessmentStatusRequest updateAssessmentStatusRequest = UpdateAssessmentStatusRequest.builder()
           .assessmentId(currentModel.getAssessmentId())
           .status(AssessmentStatus.INACTIVE)
           .build();
-      try {
-        UpdateAssessmentStatusResponse updateAssessmentStatusResponse =
-            proxy.injectCredentialsAndInvokeV2(updateAssessmentStatusRequest,
-                proxyClient.client()::updateAssessmentStatus);
-        return updateAssessmentStatusResponse.assessment();
-      } catch (AwsServiceException e) {
-        throw ExceptionTranslator.translateToCfnException(e, currentModel.getAssessmentId());
-      }
+      UpdateAssessmentStatusResponse updateAssessmentStatusResponse =
+          proxy.injectCredentialsAndInvokeV2(updateAssessmentStatusRequest,
+              proxyClient.client()::updateAssessmentStatus);
+      return updateAssessmentStatusResponse.assessment();
+
     } else {
       final UpdateAssessmentRequest updateAssessmentRequest = UpdateAssessmentRequest.builder()
           .assessmentId(currentModel.getAssessmentId())
@@ -88,14 +89,9 @@ public class UpdateHandler extends BaseHandlerStd {
               AssessmentMetadataUtils.cfnRoleToSdkRoles(currentModel.getRoles()) : null)
           .build();
 
-      try {
-        UpdateAssessmentResponse updateAssessmentResponse =
-            proxy.injectCredentialsAndInvokeV2(updateAssessmentRequest, proxyClient.client()::updateAssessment);
-        return updateAssessmentResponse.assessment();
-      } catch (AwsServiceException e) {
-        //Change to AwsServiceException with SDK
-        throw ExceptionTranslator.translateToCfnException(e, currentModel.getAssessmentId());
-      }
+      UpdateAssessmentResponse updateAssessmentResponse =
+          proxy.injectCredentialsAndInvokeV2(updateAssessmentRequest, proxyClient.client()::updateAssessment);
+      return updateAssessmentResponse.assessment();
     }
   }
 
@@ -123,6 +119,12 @@ public class UpdateHandler extends BaseHandlerStd {
     }
   }
 
+  /**
+   * Checks if the create only fields have been updated and throws an exception if it is the case
+   *
+   * @param currentModel the current resource model
+   * @param previousModel the previous resource model
+   */
   private void verifyNonUpdatableFields(final ResourceModel currentModel, final ResourceModel previousModel) {
     if (previousModel != null) {
       if (!Optional.ofNullable(currentModel.getCreationTime())
@@ -148,10 +150,6 @@ public class UpdateHandler extends BaseHandlerStd {
       if (!Optional.ofNullable(currentModel.getFrameworkId())
           .equals(Optional.ofNullable(previousModel.getFrameworkId()))) {
         throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, "FrameworkId");
-      }
-      if (!Optional.ofNullable(currentModel.getAssessmentId())
-          .equals(Optional.ofNullable(previousModel.getAssessmentId()))) {
-        throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, "AssessmentId");
       }
     }
   }

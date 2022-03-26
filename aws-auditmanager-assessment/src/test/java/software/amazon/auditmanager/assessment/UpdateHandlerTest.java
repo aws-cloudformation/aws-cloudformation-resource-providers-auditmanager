@@ -1,5 +1,6 @@
 package software.amazon.auditmanager.assessment;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -19,7 +20,10 @@ import java.time.Duration;
 import com.google.common.collect.Lists;
 import java.util.Date;
 import software.amazon.awssdk.services.auditmanager.AuditManagerClient;
+import software.amazon.awssdk.services.auditmanager.model.AccessDeniedException;
+import software.amazon.awssdk.services.auditmanager.model.CreateAssessmentRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -184,6 +188,31 @@ public class UpdateHandlerTest extends AbstractTestBase {
   }
 
   @Test
+  public void testUpdateAssessment_withoutRegistration_shouldThrowAccessDenied() {
+    final ResourceModel previousResourceModel =
+        Utils.transformToAssessmentResourceModel(makeResourceModel(), makeAssessment(null, null));
+    final ResourceModel currentResourceModel =
+        Utils.transformToAssessmentResourceModel(makeResourceModel(), makeAssessment(null, null));
+    currentResourceModel.getRoles().get(0).setRoleArn(USER_ARN_UPDATED);
+
+    final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        .desiredResourceState(currentResourceModel)
+        .previousResourceState(previousResourceModel)
+        .build();
+
+    when(proxyClient.client().updateAssessment(any(UpdateAssessmentRequest.class)))
+        .thenThrow(
+            AccessDeniedException.builder().message(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE).build());
+    final ProgressEvent<ResourceModel, CallbackContext> response =
+        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+    assertThat(response.getMessage()).isEqualTo(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE);
+    assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.AccessDenied);
+
+  }
+
+  @Test
   public void testUpdateAssessment_completedAssessment_shouldThrowInvalidRequest() {
     final ResourceModel previousResourceModel =
         Utils.transformToAssessmentResourceModel(makeResourceModel(), makeAssessment(null, null));
@@ -213,12 +242,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         .desiredResourceState(currentResourceModel)
         .previousResourceState(previousResourceModel)
         .build();
-
-    currentResourceModel.setAssessmentId("test");
-    assertThrows(CfnNotUpdatableException.class, () ->
-        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
-
-    currentResourceModel.setAssessmentId(previousResourceModel.getAssessmentId());
 
     currentResourceModel.setFrameworkId("test");
     assertThrows(CfnNotUpdatableException.class, () ->

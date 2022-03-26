@@ -35,7 +35,7 @@ public class ListHandler extends BaseHandlerStd {
             listAssessmentsResponse = proxy.injectCredentialsAndInvokeV2(listAssessmentsRequest,
                 proxyClient.client()::listAssessments);
         } catch (AwsServiceException e) {
-            throw ExceptionTranslator.translateToCfnException(e, "No identifier specified");
+            return ExceptionTranslator.translateToCfnException(e, "No identifier specified");
         }
 
         request.setNextToken(listAssessmentsResponse.nextToken());

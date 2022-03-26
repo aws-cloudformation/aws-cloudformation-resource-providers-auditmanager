@@ -41,7 +41,7 @@ public class DeleteHandler extends BaseHandlerStd {
     try {
       proxy.injectCredentialsAndInvokeV2(deleteAssessmentRequest, proxyClient.client()::deleteAssessment);;
     } catch (AwsServiceException e) {
-      throw ExceptionTranslator.translateToCfnException(e, model.getAssessmentId());
+      return ExceptionTranslator.translateToCfnException(e, model.getAssessmentId());
     }
     return ProgressEvent.defaultSuccessHandler(null);
   }

@@ -1,5 +1,6 @@
 package software.amazon.auditmanager.assessment;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -15,7 +16,10 @@ import static software.amazon.auditmanager.assessment.AbstractTestBase.*;
 
 import java.time.Duration;
 import software.amazon.awssdk.services.auditmanager.AuditManagerClient;
+import software.amazon.awssdk.services.auditmanager.model.AccessDeniedException;
+import software.amazon.awssdk.services.auditmanager.model.CreateAssessmentRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -106,5 +110,17 @@ public class DeleteHandlerTest extends AbstractTestBase {
         .thenThrow(ValidationException.class);
     assertThrows(CfnInvalidRequestException.class, () ->
         handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger));
+
+    when(proxyClient.client().deleteAssessment(any(DeleteAssessmentRequest.class)))
+        .thenThrow(
+            AccessDeniedException.builder().message(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE).build());
+    final ProgressEvent<ResourceModel, CallbackContext> response =
+        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+    assertThat(response.getMessage()).isEqualTo(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE);
+    assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.AccessDenied);
+
   }
+
 }
