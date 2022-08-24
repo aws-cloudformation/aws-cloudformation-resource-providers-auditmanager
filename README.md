@@ -1,6 +1,7 @@
 ## CloudFormation resource provider package for AWS Audit Manager
 
 The CloudFormation resource provider package for AWS Audit Manager.
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_AuditManager.html
 
 ## Security
 
