@@ -42,7 +42,7 @@ public class CreateHandler extends BaseHandlerStd {
       createAssessmentResponse = proxy.injectCredentialsAndInvokeV2(createAssessmentRequest,
           proxyClient.client()::createAssessment);
     } catch (AwsServiceException e) {
-      throw ExceptionTranslator.translateToCfnException(e, createAssessmentRequest.name());
+      return ExceptionTranslator.translateToCfnException(e, createAssessmentRequest.name());
     }
 
     return ProgressEvent.<ResourceModel, CallbackContext>builder()

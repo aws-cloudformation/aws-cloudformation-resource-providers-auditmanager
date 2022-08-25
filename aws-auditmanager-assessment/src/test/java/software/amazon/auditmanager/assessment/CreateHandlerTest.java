@@ -1,31 +1,26 @@
 package software.amazon.auditmanager.assessment;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
-import static software.amazon.auditmanager.assessment.AbstractTestBase.*;
-import static software.amazon.auditmanager.assessment.AbstractTestBase.makeCfnAssessmentReportsDestination;
-import static software.amazon.auditmanager.assessment.AbstractTestBase.makeCfnScope;
-import static software.amazon.auditmanager.assessment.Utils.sdkTagsToCfnTags;
 
 import java.time.Duration;
+import software.amazon.awssdk.services.auditmanager.model.AccessDeniedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.exceptions.CfnServiceInternalErrorException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,6 +104,34 @@ public class CreateHandlerTest extends AbstractTestBase {
         () ->{
           handler.handleRequest(proxy, request, null, proxyClient, logger);
         });
+  }
+
+  @Test
+  public void testCreateAssessment_withoutRegistration_shouldThrowAccessDenied() {
+    final ResourceModel inputResourceModel =
+        Utils.transformToAssessmentResourceModel(makeResourceModel(), makeAssessment(null, makeTags()));
+    final ResourceModel createAssessmentRequestResourceModel = ResourceModel.builder()
+        .tags(inputResourceModel.getTags())
+        .scope(inputResourceModel.getScope())
+        .roles(inputResourceModel.getRoles())
+        .name(inputResourceModel.getName())
+        .description(inputResourceModel.getDescription())
+        .frameworkId(FRAMEWORK_ID)
+        .build();
+    final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        .desiredResourceState(createAssessmentRequestResourceModel)
+        .build();
+
+    when(proxyClient.client().createAssessment(any(CreateAssessmentRequest.class)))
+        .thenThrow(
+            AccessDeniedException.builder().message(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE).build());
+    final ProgressEvent<ResourceModel, CallbackContext> response =
+        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+    assertThat(response).isNotNull();
+    assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+    assertThat(response.getMessage()).isEqualTo(ExceptionTranslator.AUDIT_MANAGER_NOT_ENABLED_MESSAGE);
+    assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.AccessDenied);
+
   }
 
   @Test

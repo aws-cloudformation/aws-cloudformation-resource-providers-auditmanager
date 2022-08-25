@@ -52,9 +52,9 @@ public class AbstractTestBase {
   public static final String ASSESSMENT_ID = "61e675f6-b6b5-4db8-a1be-74e7a5792312";
   public static final String FRAMEWORK_ID = "B27E48646A20333342C8BCEA9C201A59";
   public static final String ASSESSMENT_ARN =
-      "arn:aws:bedrock:us-west-2:111111111111:assessment/" + ASSESSMENT_ID;
+      "arn:aws:auditmanager:us-west-2:111111111111:assessment/" + ASSESSMENT_ID;
   public static final String FRAMEWORK_ARN =
-      "arn:aws:bedrock:us-west-2:111111111111:assessmentFramework/" + FRAMEWORK_ID;
+      "arn:aws:auditmanager:us-west-2:111111111111:assessmentFramework/" + FRAMEWORK_ID;
   protected static final String USER_ARN = "arn:aws:iam::111111111111:user/testUser";
   protected static final String USER_ARN_UPDATED = "arn:aws:iam::111111111111:user/testUserUpdated";
   protected static final String CONTROL_SET_ID = "ControlSetId-";
